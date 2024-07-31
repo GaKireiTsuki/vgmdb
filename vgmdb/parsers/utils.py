@@ -1,22 +1,30 @@
 # coding=utf-8
 import bs4
 import string
+import sys
 import unicodedata
+import random
 import re
-import urllib
+import time
 import urllib2
 import urlparse
 
 db_parser = re.compile(r'db/([a-z]+)\.php')
 
-class AppURLOpener(urllib.FancyURLopener):
-	version = "vgmdbapi/0.2 +https://vgmdb.info"
-urllib._urlopener = AppURLOpener()
-
-def fetch_page(url):
-	data = urllib2.urlopen(url, None, 30).read()
-	data = data.decode('utf-8', 'ignore')
-	return data
+def fetch_page(url, retries=2):
+	try:
+		request = urllib2.Request(url)
+		request.add_header('User-Agent', 'VGMdb/1.0 vgmdb.info')
+		data = urllib2.urlopen(request, None, 30).read()
+		data = data.decode('utf-8', 'ignore')
+		return data
+	except urllib2.HTTPError, error:
+		print >> sys.stderr, "HTTPError %s while fetching %s" % (error.code, url)
+		if error.code == 503 and retries:
+			time.sleep(random.randint(500, 3000)/1000.0)
+			return fetch_page(url, retries-1)
+		print >> sys.stderr, error.read()
+		raise
 
 def url_info_page(type, id):
 	return 'https://vgmdb.net/%s/%s?perpage=99999'%(type,id)

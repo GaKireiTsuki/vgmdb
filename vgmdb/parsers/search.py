@@ -1,6 +1,9 @@
 import bs4
 
+import random
 import re
+import sys
+import time
 from . import utils
 import urllib
 
@@ -10,9 +13,18 @@ urllib._urlopener = AppURLOpener()
 
 def fetch_url(query):
 	return 'https://vgmdb.net/search?q=%s'%(urllib.quote(query))
-def fetch_page(query):
-	url = fetch_url(query)
-	page = urllib.urlopen(url)
+def fetch_page(query, retries=2):
+	try:
+		url = fetch_url(query)
+		page = urllib.urlopen(url)
+	except urllib.HTTPError, error:
+		print >> sys.stderr, "HTTPError %s while fetching %s" % (error.code, url)
+		if error.code == 503 and retries:
+			time.sleep(random.randint(500, 3000)/1000.0)
+			return fetch_page(url, retries-1)
+		print >> sys.stderr, error.read()
+		raise
+
 	if page.geturl() == url:
 		data = page.read()
 		data = data.decode('utf-8', 'ignore')
