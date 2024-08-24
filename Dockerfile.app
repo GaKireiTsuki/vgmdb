@@ -20,4 +20,4 @@ ADD docker/sv-celery-background /etc/service/celery-background/run
 RUN chmod +x /etc/service/*/run
 
 CMD ["/sbin/my_init"]
-EXPOSE 80
+EXPOSE 8080
