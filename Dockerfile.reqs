@@ -28,7 +28,7 @@ RUN ln -s /usr/lib/uwsgi/plugins/gevent_python_plugin.so /usr/lib/uwsgi/plugins/
 RUN chmod +x /etc/service/*/run
 
 CMD ["/sbin/my_init"]
-EXPOSE 8080
+EXPOSE 80
 
 RUN apt-get autoremove -y python-dev libxml2-dev libxslt1-dev zlib1g-dev
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
