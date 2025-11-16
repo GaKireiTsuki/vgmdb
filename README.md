@@ -19,6 +19,8 @@ The page will produce the output format that most-closely matches the request's 
 There are also links to validation services, to verify that the page's data is in fact valid and parseable in the respective formats. The main page doesn't produce any other formats, but every other page does.
 
 # Development and Installation
+
+## Python Version (Original)
 Unit tests are employed, both in the parsing and in the output stages, to validate that the information is being correctly parsed and encoded. Run the tests.sh script to run the tests.
 
 Most of any runtime requirements should be documented in requirements.txt. Use pip install -r requirements.txt to install them.
@@ -26,3 +28,31 @@ Most of any runtime requirements should be documented in requirements.txt. Use p
 The run.py example script will start up an HTTP server process for the site. An example Apache2 configuration, using mod\_wsgi, is also provided. It should work just as well under any other WSGI server.
 
 The `docker/docker-build.sh` script should produce a `vgmdb_reqs` base image with the dependencies and a `vgmdb` image with the current version of the code installed. This image exposes port 80, and `vgmdb/autoload_settings.py` implements loading optional dependencies and settings based on environment variables.
+
+## Node.js Version
+
+A Node.js implementation is now available in the `nodejs/` directory. This implementation provides the same API functionality using modern JavaScript.
+
+### Quick Start (Node.js)
+```bash
+cd nodejs
+npm install
+npm start
+```
+
+The Node.js server will start on port 3000 (configurable via PORT environment variable).
+
+### Features
+- RESTful API with Express.js
+- HTML parsing with Cheerio
+- JSON and YAML output formats
+- CORS support
+- Same API endpoints as Python version
+
+### Endpoints
+- `GET /album/:id` - Get album information
+- `GET /artist/:id` - Get artist information
+- `GET /product/:id` - Get product (game) information
+- `GET /search/:query` - Search across all categories
+
+See `nodejs/README.md` for detailed documentation.
