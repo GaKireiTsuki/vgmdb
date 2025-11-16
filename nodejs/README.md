@@ -37,6 +37,8 @@ PORT=8080 npm start
 
 ## API Usage
 
+See [API.md](API.md) for complete API documentation.
+
 ### Get Album Information
 ```bash
 # JSON format
