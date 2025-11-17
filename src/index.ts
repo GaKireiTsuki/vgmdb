@@ -5,6 +5,7 @@ import { fetchArtistPage, parseArtistPage } from './parsers/artist';
 import { fetchProductPage, parseProductPage } from './parsers/product';
 import { fetchEventPage, parseEventPage } from './parsers/event';
 import { fetchOrgPage, parseOrgPage } from './parsers/org';
+import { fetchAlbumlistPage, parseAlbumlistPage } from './parsers/albumlist';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
@@ -224,6 +225,45 @@ app.get('/org/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Albumlist endpoint
+app.get('/albumlist/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchAlbumlistPage(id);
+    const albumlistInfo = parseAlbumlistPage(html);
+
+    if (!albumlistInfo) {
+      return res.status(404).json({ error: 'Album list not found' });
+    }
+
+    // Set cache header
+    res.setHeader('Cache-Control', 'max-age=86400,public');
+
+    // Determine output format
+    if (format === 'yaml' || req.accepts('yaml')) {
+      res.setHeader('Content-Type', 'application/x-yaml');
+      return res.send(yaml.dump(albumlistInfo));
+    } else if (format === 'json' || format === '' || req.accepts('json')) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(albumlistInfo);
+    } else {
+      // Default to JSON
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(albumlistInfo);
+    }
+  } catch (error) {
+    console.error('Error fetching album list:', error);
+    
+    if (error instanceof Error && error.message.includes('503')) {
+      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
+    }
+    
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Error handling middleware
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
@@ -240,6 +280,7 @@ app.listen(PORT, () => {
   console.log(`Try: http://localhost:${PORT}/product/241?format=json`);
   console.log(`Try: http://localhost:${PORT}/event/138?format=json`);
   console.log(`Try: http://localhost:${PORT}/org/67?format=json`);
+  console.log(`Try: http://localhost:${PORT}/albumlist/A1?format=json`);
 });
 
 export default app;

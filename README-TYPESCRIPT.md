@@ -169,14 +169,20 @@ npm test
 
 - ✅ Album information parsing
 - ✅ Artist information parsing
+- ✅ Product information parsing
+- ✅ Event information parsing
+- ✅ Organization information parsing
+- ✅ Album list parsing
 - ✅ JSON and YAML output formats
 - ✅ CORS support for cross-origin requests
 - ✅ TypeScript for type safety
 - ✅ Caching headers
-- ⏳ Product information parsing (planned)
-- ⏳ Event information parsing (planned)
-- ⏳ Organization information parsing (planned)
+- ⏳ Artist list parsing (planned)
+- ⏳ Product list parsing (planned)
+- ⏳ Organization list parsing (planned)
+- ⏳ Event list parsing (planned)
 - ⏳ Search functionality (planned)
+- ⏳ Recent updates (planned)
 - ⏳ Redis caching (planned)
 
 ## Comparison with Python Implementation
@@ -187,11 +193,16 @@ This TypeScript implementation aims to provide feature parity with the original 
 
 - Core album parsing: ✅ Implemented
 - Core artist parsing: ✅ Implemented
+- Core product parsing: ✅ Implemented
+- Core event parsing: ✅ Implemented
+- Core organization parsing: ✅ Implemented
+- Album list parsing: ✅ Implemented
 - Express.js API server: ✅ Implemented
 - Output formats (JSON, YAML): ✅ Implemented
 - CORS support: ✅ Implemented
-- Other parsers (product, event, org, etc.): ⏳ Not yet implemented
+- Other list parsers (artistlist, productlist, etc.): ⏳ Not yet implemented
 - Search functionality: ⏳ Not yet implemented
+- Recent updates: ⏳ Not yet implemented
 - Caching with Redis: ⏳ Not yet implemented
 - RDF output: ⏳ Not yet implemented
 
