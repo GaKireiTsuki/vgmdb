@@ -62,6 +62,7 @@ export function fixInvalidTable(htmlSource: string): string {
 
   // fix missing </table>
   let start = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     start = html.indexOf('<table', start + 1);
     if (start === -1) break;
@@ -86,6 +87,7 @@ export function fixInvalidTable(htmlSource: string): string {
 
   // fix duplicate <tr>
   start = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     start = html.indexOf('<tr>', start + 1);
     if (start === -1) break;
@@ -107,6 +109,7 @@ export function fixInvalidTable(htmlSource: string): string {
 
   // fix duplicate </tr>
   start = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     start = html.indexOf('</tr>', start + 1);
     if (start === -1) break;

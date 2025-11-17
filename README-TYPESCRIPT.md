@@ -95,6 +95,42 @@ curl http://localhost:9990/album/79?format=yaml
 }
 ```
 
+### Artist Information
+
+```
+GET /artist/:id
+```
+
+Retrieve information about a specific artist.
+
+**Parameters:**
+- `id` - The artist ID from VGMdb.net
+
+**Query Parameters:**
+- `format` - Output format: `json` (default) or `yaml`
+
+**Example:**
+```bash
+curl http://localhost:9990/artist/137
+curl http://localhost:9990/artist/137?format=yaml
+```
+
+**Response:**
+```json
+{
+  "names": {
+    "en": "Nobuo Uematsu"
+  },
+  "name": "Nobuo Uematsu",
+  "picture_small": "https://...",
+  "picture_full": "https://...",
+  "birth_place": "...",
+  "birthdate": "...",
+  "aliases": [...],
+  "notes": "..."
+}
+```
+
 ## Project Structure
 
 ```
@@ -132,13 +168,14 @@ npm test
 ## Features
 
 - ✅ Album information parsing
+- ✅ Artist information parsing
 - ✅ JSON and YAML output formats
 - ✅ CORS support for cross-origin requests
 - ✅ TypeScript for type safety
 - ✅ Caching headers
-- ⏳ Artist information parsing (planned)
 - ⏳ Product information parsing (planned)
 - ⏳ Event information parsing (planned)
+- ⏳ Organization information parsing (planned)
 - ⏳ Search functionality (planned)
 - ⏳ Redis caching (planned)
 
@@ -149,10 +186,11 @@ This TypeScript implementation aims to provide feature parity with the original 
 ### Current Implementation Status
 
 - Core album parsing: ✅ Implemented
+- Core artist parsing: ✅ Implemented
 - Express.js API server: ✅ Implemented
 - Output formats (JSON, YAML): ✅ Implemented
 - CORS support: ✅ Implemented
-- Other parsers (artist, product, event, etc.): ⏳ Not yet implemented
+- Other parsers (product, event, org, etc.): ⏳ Not yet implemented
 - Search functionality: ⏳ Not yet implemented
 - Caching with Redis: ⏳ Not yet implemented
 - RDF output: ⏳ Not yet implemented
