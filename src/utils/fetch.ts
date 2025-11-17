@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const USER_AGENT = 'VGMdb/1.0 vgmdb.info';
 const BASE_URL = 'https://vgmdb.net';
+const REQUEST_TIMEOUT_MS = 30000;
 
 export async function fetchPage(url: string, retries = 2): Promise<string> {
   try {
@@ -9,7 +10,7 @@ export async function fetchPage(url: string, retries = 2): Promise<string> {
       headers: {
         'User-Agent': USER_AGENT,
       },
-      timeout: 30000,
+      timeout: REQUEST_TIMEOUT_MS,
     });
     return response.data;
   } catch (error) {
@@ -154,7 +155,7 @@ export function forceAbsolute(link: string): string {
 }
 
 export function extractBackgroundImage(style: string): string | null {
-  const match = style.match(/background-image:\s*url\('([^)]*)'\)/);
+  const match = style.match(/background-image:\s*url\('([^']*)'\)/);
   return match ? match[1] : null;
 }
 

@@ -9,13 +9,42 @@ import { fetchAlbumlistPage, parseAlbumlistPage } from './parsers/albumlist';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
+const DEFAULT_CORS_HEADERS = 'Origin, User-Agent, If-Modified-Since, Cache-Control';
+
+// Helper function to send formatted response
+function sendFormattedResponse(
+  res: Response,
+  data: unknown,
+  format: string,
+  req: Request
+): void {
+  res.setHeader('Cache-Control', 'max-age=86400,public');
+
+  if (format === 'yaml' || req.accepts('yaml')) {
+    res.setHeader('Content-Type', 'application/x-yaml');
+    res.send(yaml.dump(data));
+  } else {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(data);
+  }
+}
+
+// Helper function to handle errors
+function handleError(error: unknown, res: Response, context: string): void {
+  console.error(`Error ${context}:`, error);
+
+  if (error instanceof Error && error.message.includes('503')) {
+    res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
+  } else {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 // CORS middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  const headers = req.headers['access-control-request-headers'] || 
-    'Origin, User-Agent, If-Modified-Since, Cache-Control';
+  const headers = req.headers['access-control-request-headers'] || DEFAULT_CORS_HEADERS;
   res.setHeader('Access-Control-Allow-Headers', headers);
   next();
 });
@@ -43,29 +72,9 @@ app.get('/album/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Album not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(albumInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(albumInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(albumInfo);
-    }
+    sendFormattedResponse(res, albumInfo, format, req);
   } catch (error) {
-    console.error('Error fetching album:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching album');
   }
 });
 
@@ -82,29 +91,9 @@ app.get('/artist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Artist not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(artistInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(artistInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(artistInfo);
-    }
+    sendFormattedResponse(res, artistInfo, format, req);
   } catch (error) {
-    console.error('Error fetching artist:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching artist');
   }
 });
 
@@ -121,29 +110,9 @@ app.get('/product/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(productInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(productInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(productInfo);
-    }
+    sendFormattedResponse(res, productInfo, format, req);
   } catch (error) {
-    console.error('Error fetching product:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching product');
   }
 });
 
@@ -160,29 +129,9 @@ app.get('/event/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(eventInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(eventInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(eventInfo);
-    }
+    sendFormattedResponse(res, eventInfo, format, req);
   } catch (error) {
-    console.error('Error fetching event:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching event');
   }
 });
 
@@ -199,29 +148,9 @@ app.get('/org/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(orgInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(orgInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(orgInfo);
-    }
+    sendFormattedResponse(res, orgInfo, format, req);
   } catch (error) {
-    console.error('Error fetching organization:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching organization');
   }
 });
 
@@ -238,29 +167,9 @@ app.get('/albumlist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Album list not found' });
     }
 
-    // Set cache header
-    res.setHeader('Cache-Control', 'max-age=86400,public');
-
-    // Determine output format
-    if (format === 'yaml' || req.accepts('yaml')) {
-      res.setHeader('Content-Type', 'application/x-yaml');
-      return res.send(yaml.dump(albumlistInfo));
-    } else if (format === 'json' || format === '' || req.accepts('json')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(albumlistInfo);
-    } else {
-      // Default to JSON
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(albumlistInfo);
-    }
+    sendFormattedResponse(res, albumlistInfo, format, req);
   } catch (error) {
-    console.error('Error fetching album list:', error);
-    
-    if (error instanceof Error && error.message.includes('503')) {
-      return res.status(503).json({ error: 'vgmdb.net is temporarily unavailable' });
-    }
-    
-    return res.status(500).json({ error: 'Internal server error' });
+    handleError(error, res, 'fetching album list');
   }
 });
 

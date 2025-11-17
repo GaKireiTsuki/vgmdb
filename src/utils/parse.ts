@@ -145,8 +145,9 @@ export function parseDateTime(time: string): string | null {
   }
 
   const notmonth = trimmedTime.substring(space + 1).trim();
-  if (notmonth.length === 4) {
-    return `${notmonth.padStart(4, '0')}-${monthNum.toString().padStart(2, '0')}`;
+  if (notmonth.length === 4 && /^\d{4}$/.test(notmonth)) {
+    const year = parseInt(notmonth, 10);
+    return `${year.toString().padStart(4, '0')}-${monthNum.toString().padStart(2, '0')}`;
   }
 
   const dayYearMatch = trimmedTime

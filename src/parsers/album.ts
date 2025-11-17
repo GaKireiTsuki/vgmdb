@@ -15,7 +15,7 @@ export function parseAlbumPage(htmlSource: string): AlbumInfo | null {
 
   const $profile = $('#innermain');
   if ($profile.length === 0) {
-    return null; // info not found
+    return null;
   }
 
   const albumInfo: AlbumInfo = {
