@@ -6,6 +6,10 @@ import { fetchProductPage, parseProductPage } from './parsers/product';
 import { fetchEventPage, parseEventPage } from './parsers/event';
 import { fetchOrgPage, parseOrgPage } from './parsers/org';
 import { fetchAlbumlistPage, parseAlbumlistPage } from './parsers/albumlist';
+import { fetchArtistlistPage, parseArtistlistPage } from './parsers/artistlist';
+import { fetchProductlistPage, parseProductlistPage } from './parsers/productlist';
+import { fetchOrglistPage, parseOrglistPage } from './parsers/orglist';
+import { fetchEventlistPage, parseEventlistPage } from './parsers/eventlist';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
@@ -173,6 +177,80 @@ app.get('/albumlist/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Artistlist endpoint
+app.get('/artistlist/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchArtistlistPage(id);
+    const artistlistInfo = parseArtistlistPage(html);
+
+    if (!artistlistInfo) {
+      return res.status(404).json({ error: 'Artist list not found' });
+    }
+
+    sendFormattedResponse(res, artistlistInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching artist list');
+  }
+});
+
+// Productlist endpoint
+app.get('/productlist/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchProductlistPage(id);
+    const productlistInfo = parseProductlistPage(html);
+
+    if (!productlistInfo) {
+      return res.status(404).json({ error: 'Product list not found' });
+    }
+
+    sendFormattedResponse(res, productlistInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching product list');
+  }
+});
+
+// Orglist endpoint
+app.get('/orglist', async (req: Request, res: Response) => {
+  try {
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchOrglistPage();
+    const orglistInfo = parseOrglistPage(html);
+
+    if (!orglistInfo) {
+      return res.status(404).json({ error: 'Organization list not found' });
+    }
+
+    sendFormattedResponse(res, orglistInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching organization list');
+  }
+});
+
+// Eventlist endpoint
+app.get('/eventlist', async (req: Request, res: Response) => {
+  try {
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchEventlistPage();
+    const eventlistInfo = parseEventlistPage(html);
+
+    if (!eventlistInfo) {
+      return res.status(404).json({ error: 'Event list not found' });
+    }
+
+    sendFormattedResponse(res, eventlistInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching event list');
+  }
+});
+
 // Error handling middleware
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
@@ -190,6 +268,10 @@ app.listen(PORT, () => {
   console.log(`Try: http://localhost:${PORT}/event/138?format=json`);
   console.log(`Try: http://localhost:${PORT}/org/67?format=json`);
   console.log(`Try: http://localhost:${PORT}/albumlist/A1?format=json`);
+  console.log(`Try: http://localhost:${PORT}/artistlist/A1?format=json`);
+  console.log(`Try: http://localhost:${PORT}/productlist/A1?format=json`);
+  console.log(`Try: http://localhost:${PORT}/orglist?format=json`);
+  console.log(`Try: http://localhost:${PORT}/eventlist?format=json`);
 });
 
 export default app;
