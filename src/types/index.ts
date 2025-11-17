@@ -79,18 +79,34 @@ export interface AlbumEntry {
 export interface ProductInfo {
   names: Names;
   name: string;
+  name_real?: string;
   link?: string;
   picture_thumb?: string;
   picture_small?: string;
   picture_full?: string;
   type?: string;
   description?: string;
-  related?: Array<{
+  release_date?: string;
+  franchises?: Array<{
     names: Names;
+    link: string;
+  }>;
+  organizations?: Array<{
+    names: Names;
+    link?: string;
+  }>;
+  websites?: Record<string, Array<{
+    link: string;
+    name: string;
+  }>>;
+  albums?: Array<{
+    date: string;
+    classifications?: string[];
+    titles: Names;
+    catalog: string;
     link: string;
     type: string;
   }>;
-  albums?: AlbumEntry[];
   meta?: MetaInfo;
 }
 
@@ -103,24 +119,55 @@ export interface OrgInfo {
   picture_full?: string;
   type?: string;
   region?: string;
+  description?: string;
   website?: string;
+  websites?: Record<string, Array<{
+    link: string;
+    name: string;
+  }>>;
   staff?: Array<{
     names: Names;
     link: string;
-    role: string;
+    owner?: boolean;
   }>;
-  releases?: AlbumEntry[];
+  releases?: Array<{
+    role: string;
+    catalog: string;
+    reprint?: boolean;
+    event?: {
+      link: string;
+      name: string;
+      shortname: string;
+    };
+    date?: string;
+    link?: string;
+    titles: Names;
+    type?: string;
+  }>;
   meta?: MetaInfo;
 }
 
 export interface EventInfo {
   name: string;
   link?: string;
-  date?: string;
+  startdate?: string;
+  enddate?: string;
   series?: {
     name: string;
     link: string;
   };
-  albums?: AlbumEntry[];
+  notes?: string;
+  releases?: Array<{
+    release_type?: string;
+    catalog: string;
+    album_type?: string;
+    titles: Names;
+    link: string;
+    release_date?: string;
+    publisher?: {
+      link?: string;
+      names: Names;
+    };
+  }>;
   meta?: MetaInfo;
 }
