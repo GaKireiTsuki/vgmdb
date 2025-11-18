@@ -172,6 +172,7 @@ npm test
 - ✅ Product information parsing
 - ✅ Event information parsing
 - ✅ Organization information parsing
+- ✅ Release information parsing
 - ✅ Album list parsing
 - ✅ Artist list parsing
 - ✅ Product list parsing
@@ -181,9 +182,8 @@ npm test
 - ✅ CORS support for cross-origin requests
 - ✅ TypeScript for type safety
 - ✅ Caching headers
-- ⏳ Search functionality (planned - complex implementation)
-- ⏳ Recent updates (planned)
-- ⏳ Release parser (planned)
+- ⏳ Search functionality (planned - complex Bloom filter implementation)
+- ⏳ Recent updates (planned - complex multi-format parser)
 - ⏳ Redis caching (planned)
 
 ## Comparison with Python Implementation
@@ -197,6 +197,7 @@ This TypeScript implementation aims to provide feature parity with the original 
 - Core product parsing: ✅ Implemented
 - Core event parsing: ✅ Implemented
 - Core organization parsing: ✅ Implemented
+- Core release parsing: ✅ Implemented
 - Album list parsing: ✅ Implemented
 - Artist list parsing: ✅ Implemented
 - Product list parsing: ✅ Implemented
@@ -205,9 +206,8 @@ This TypeScript implementation aims to provide feature parity with the original 
 - Express.js API server: ✅ Implemented
 - Output formats (JSON, YAML): ✅ Implemented
 - CORS support: ✅ Implemented
-- Search functionality: ⏳ Not yet implemented (complex - uses Bloom filters)
-- Recent updates: ⏳ Not yet implemented
-- Release parser: ⏳ Not yet implemented
+- Search functionality: ⏳ Not yet implemented (complex - uses Bloom filters for indexing)
+- Recent updates: ⏳ Not yet implemented (complex - multiple table formats)
 - Caching with Redis: ⏳ Not yet implemented
 - RDF output: ⏳ Not yet implemented
 
