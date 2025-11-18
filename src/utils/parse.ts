@@ -1,5 +1,7 @@
+import * as cheerio from 'cheerio';
 import { CheerioAPI } from 'cheerio';
 import { AnyNode } from 'domhandler';
+import * as fetchUtils from './fetch';
 
 export function parseString(element: AnyNode, cheerio: CheerioAPI): string {
   const $ = cheerio;
@@ -201,4 +203,249 @@ export function categoryToType(category: string): string | undefined {
 
 export function typeToCategory(type: string): string | undefined {
   return typeCategoryMap[type];
+}
+
+export function normalizeSeparatedDate(
+  weirdDate: string,
+  separator: string
+): string | null {
+  if (!weirdDate) {
+    return null;
+  }
+
+  const elements = weirdDate.split(separator);
+  const output: number[] = [];
+
+  for (const elem of elements) {
+    if (elem.length > 0 && elem[0] !== '?') {
+      const num = parseInt(elem, 10);
+      if (!isNaN(num)) {
+        output.push(num);
+      }
+    }
+  }
+
+  if (output.length === 0) {
+    return null;
+  }
+
+  const stringedOutput: string[] = [output[0].toString().padStart(4, '0')];
+  for (let i = 1; i < output.length; i++) {
+    stringedOutput.push(output[i].toString().padStart(2, '0'));
+  }
+
+  return stringedOutput.join('-');
+}
+
+export function normalizeDottedDate(weirdDate: string): string | null {
+  return normalizeSeparatedDate(weirdDate, '.');
+}
+
+export function normalizeDashedDate(weirdDate: string): string | null {
+  return normalizeSeparatedDate(weirdDate, '-');
+}
+
+export function parseDiscography(
+  $table: cheerio.Cheerio<AnyNode>,
+  $: cheerio.CheerioAPI
+): Array<{
+  date?: string;
+  roles?: string[];
+  classifications?: string[];
+  titles: Record<string, string>;
+  catalog: string;
+  link: string;
+  type: string;
+  reprint?: boolean;
+}> {
+  const albums: Array<{
+    date?: string;
+    roles?: string[];
+    classifications?: string[];
+    titles: Record<string, string>;
+    catalog: string;
+    link: string;
+    type: string;
+    reprint?: boolean;
+  }> = [];
+
+  if ($table.length === 0) {
+    return albums;
+  }
+
+  $table.children('tbody').each((_i: number, tbody: AnyNode) => {
+    const $tbody = $(tbody);
+    const $rows = $tbody.children('tr');
+
+    if ($rows.length === 0) return;
+
+    const $firstRow = $rows.first();
+    const $yearH3 = $firstRow.find('h3');
+    const year = $yearH3.text().trim();
+
+    $rows.slice(1).each((_j: number, tr: AnyNode) => {
+      const $tr = $(tr);
+      const $cells = $tr.children('td');
+
+      if ($cells.length < 2) return;
+
+      const monthDay = $cells.eq(0).text().trim();
+      const $albumCell = $cells.eq(1);
+      const $album = $albumCell.find('a').first();
+
+      if ($album.length === 0) return;
+
+      const link = fetchUtils.trimAbsolute($album.attr('href') || '');
+      const albumClass = $album.attr('class') || '';
+      const classes = albumClass.split(' ');
+      let albumType = '';
+      for (const cls of classes) {
+        if (cls.includes('-')) {
+          const parts = cls.split('-');
+          if (parts.length === 2) {
+            albumType = parts[1];
+            break;
+          }
+        }
+      }
+
+      const $albumInfo = $albumCell.children('span');
+      let catalog = '';
+      let rolesStr = '';
+
+      if ($albumInfo.length >= 1) {
+        catalog = $albumInfo.eq(0).text().trim();
+      }
+      if ($albumInfo.length >= 2) {
+        const $rolesSpan = $albumInfo.eq(1);
+        rolesStr = $rolesSpan.text().trim();
+      }
+
+      const roles = rolesStr.split(',').map((r) => r.trim()).filter((r) => r);
+
+      const normalizedDate = normalizeDottedDate(`${year}.${monthDay}`);
+      const date = normalizedDate || undefined;
+
+      const titles: Record<string, string> = {};
+      $album.children('span').each((_k: number, span: AnyNode) => {
+        const $span = $(span);
+        const titleLang = ($span.attr('lang') || '').toLowerCase();
+        let titleText = '';
+
+        $span.contents().each((_l: number, child: AnyNode) => {
+          if (child.type === 'text') {
+            titleText = $(child).text().trim();
+            titleText = titleText.replace(/^["']|["']$/g, '');
+          }
+        });
+
+        if (titleLang && titleText) {
+          titles[titleLang] = titleText;
+        }
+      });
+
+      let reprint = false;
+      $albumCell.children('img').each((_k: number, img: AnyNode) => {
+        const $img = $(img);
+        const alt = $img.attr('alt') || '';
+        if (alt === 'This album is a reprint') {
+          reprint = true;
+        }
+      });
+
+      albums.push({
+        date,
+        classifications: roles,
+        roles,
+        titles,
+        catalog,
+        link,
+        type: albumType,
+        reprint,
+      });
+    });
+  });
+
+  return albums;
+}
+
+export function parseMeta(
+  $metaSection: cheerio.Cheerio<AnyNode>,
+  $: cheerio.CheerioAPI
+): {
+  added_date?: string;
+  added_user?: string;
+  edited_date?: string;
+  edited_user?: string;
+  [key: string]: unknown;
+} {
+  const metaInfo: {
+    added_date?: string;
+    added_user?: string;
+    edited_date?: string;
+    edited_user?: string;
+    [key: string]: unknown;
+  } = {};
+
+  if ($metaSection.length === 0) {
+    return metaInfo;
+  }
+
+  $metaSection.children('div').each((_i: number, div: AnyNode) => {
+    const $div = $(div);
+    const $label = $div.find('b').first();
+    const label = $label.text().trim();
+
+    if (label === 'Added' || label === 'Added by') {
+      const $br = $div.find('br');
+      if ($br.length > 0) {
+        const nextText = $br[0].nextSibling;
+        if (nextText && nextText.type === 'text') {
+          const date = $(nextText).text().trim();
+          const $timeSpan = $div.find('span').first();
+          const time = $timeSpan.text().trim();
+          const datetime = parseDateTime(`${date} ${time}`);
+          if (datetime) {
+            metaInfo.added_date = datetime;
+          }
+        }
+      }
+
+      if (label === 'Added by') {
+        const nameNode = $label[0].nextSibling;
+        if (nameNode && nameNode.type === 'text') {
+          const name = $(nameNode).text().trim();
+          if (name) {
+            metaInfo.added_user = name;
+          }
+        }
+      }
+    } else if (label === 'Edited' || label === 'Edited by') {
+      const $br = $div.find('br');
+      if ($br.length > 0) {
+        const nextText = $br[0].nextSibling;
+        if (nextText && nextText.type === 'text') {
+          const date = $(nextText).text().trim();
+          const $timeSpan = $div.find('span').first();
+          const time = $timeSpan.text().trim();
+          const datetime = parseDateTime(`${date} ${time}`);
+          if (datetime) {
+            metaInfo.edited_date = datetime;
+          }
+        }
+      }
+
+      if (label === 'Edited by') {
+        const nameNode = $label[0].nextSibling;
+        if (nameNode && nameNode.type === 'text') {
+          const name = $(nameNode).text().trim();
+          if (name) {
+            metaInfo.edited_user = name;
+          }
+        }
+      }
+    }
+  });
+
+  return metaInfo;
 }

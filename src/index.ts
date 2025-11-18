@@ -10,6 +10,7 @@ import { fetchArtistlistPage, parseArtistlistPage } from './parsers/artistlist';
 import { fetchProductlistPage, parseProductlistPage } from './parsers/productlist';
 import { fetchOrglistPage, parseOrglistPage } from './parsers/orglist';
 import { fetchEventlistPage, parseEventlistPage } from './parsers/eventlist';
+import { fetchReleasePage, parseReleasePage } from './parsers/release';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
@@ -251,6 +252,25 @@ app.get('/eventlist', async (req: Request, res: Response) => {
   }
 });
 
+// Release endpoint
+app.get('/release/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const format = (req.query.format as string) || '';
+
+    const html = await fetchReleasePage(id);
+    const releaseInfo = parseReleasePage(html);
+
+    if (!releaseInfo) {
+      return res.status(404).json({ error: 'Release not found' });
+    }
+
+    sendFormattedResponse(res, releaseInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching release');
+  }
+});
+
 // Error handling middleware
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
@@ -272,6 +292,7 @@ app.listen(PORT, () => {
   console.log(`Try: http://localhost:${PORT}/productlist/A1?format=json`);
   console.log(`Try: http://localhost:${PORT}/orglist?format=json`);
   console.log(`Try: http://localhost:${PORT}/eventlist?format=json`);
+  console.log(`Try: http://localhost:${PORT}/release/1234?format=json`);
 });
 
 export default app;
