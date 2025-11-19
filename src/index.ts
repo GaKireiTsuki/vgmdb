@@ -28,7 +28,8 @@ function sendFormattedResponse(
 ): void {
   res.setHeader('Cache-Control', 'max-age=86400,public');
 
-  if (format === 'yaml' || req.accepts('yaml')) {
+  // Default to JSON unless explicitly requested as YAML
+  if (format === 'yaml') {
     res.setHeader('Content-Type', 'application/x-yaml');
     res.send(yaml.dump(data));
   } else {
