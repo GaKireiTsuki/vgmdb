@@ -11,6 +11,9 @@ import { fetchProductlistPage, parseProductlistPage } from './parsers/productlis
 import { fetchOrglistPage, parseOrglistPage } from './parsers/orglist';
 import { fetchEventlistPage, parseEventlistPage } from './parsers/eventlist';
 import { fetchReleasePage, parseReleasePage } from './parsers/release';
+import { parseSearchPage } from './parsers/search';
+import { parseRecentPage } from './parsers/recent';
+import { fetchPage } from './utils/fetch';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
@@ -271,6 +274,50 @@ app.get('/release/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Search endpoint
+app.get('/search', async (req: Request, res: Response) => {
+  try {
+    const query = (req.query.q as string) || '';
+    const format = (req.query.format as string) || '';
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter q is required' });
+    }
+
+    const url = `https://vgmdb.net/search?q=${encodeURIComponent(query)}`;
+    const html = await fetchPage(url);
+    const searchInfo = parseSearchPage(html);
+
+    if (!searchInfo) {
+      return res.status(404).json({ error: 'No results found' });
+    }
+
+    sendFormattedResponse(res, searchInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'performing search');
+  }
+});
+
+// Recent endpoint
+app.get('/recent/:type?', async (req: Request, res: Response) => {
+  try {
+    const type = req.params.type || 'albums';
+    const format = (req.query.format as string) || '';
+
+    const url = `https://vgmdb.net/db/recent.php?do=view_${type}`;
+    const html = await fetchPage(url);
+    const recentInfo = parseRecentPage(html);
+
+    if (!recentInfo) {
+      return res.status(404).json({ error: 'Recent updates not found' });
+    }
+
+    sendFormattedResponse(res, recentInfo, format, req);
+  } catch (error) {
+    handleError(error, res, 'fetching recent updates');
+  }
+});
+
 // Error handling middleware
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
@@ -293,6 +340,8 @@ app.listen(PORT, () => {
   console.log(`Try: http://localhost:${PORT}/orglist?format=json`);
   console.log(`Try: http://localhost:${PORT}/eventlist?format=json`);
   console.log(`Try: http://localhost:${PORT}/release/1234?format=json`);
+  console.log(`Try: http://localhost:${PORT}/search?q=final+fantasy`);
+  console.log(`Try: http://localhost:${PORT}/recent/albums`);
 });
 
 export default app;
