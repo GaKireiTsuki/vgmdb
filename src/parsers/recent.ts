@@ -40,7 +40,7 @@ export function parseRecentPage(html: string): RecentInfo | null {
   // Parse section tabs
   const $sections = $('ul.tabnav');
   if ($sections.length) {
-    recentInfo.section = determineSection($sections, $);
+    recentInfo.section = determineSection($sections);
     recentInfo.sections = parseSections($sections, $);
   }
 
@@ -60,13 +60,13 @@ export function parseRecentPage(html: string): RecentInfo | null {
       .map((u) => u.date)
       .filter((d) => d)
       .sort();
-    recentInfo.meta.edited_date = dates[dates.length - 1] || '';
+    recentInfo.meta.edited_date = (dates[dates.length - 1] as string) || '';
   }
 
   return recentInfo;
 }
 
-function determineSection($sections: cheerio.Cheerio<any>, $: cheerio.CheerioAPI): string {
+function determineSection($sections: cheerio.Cheerio<any>): string {
   const $active = $sections.find('li.active');
   if ($active.length && $active.find('a').length) {
     const link = $active.find('a').attr('href') || '';
@@ -300,7 +300,7 @@ function parseTableLinks(
   Object.assign(info, parseContributorCell($($cells[2]), $));
 
   const $link = $($cells[0]).find('a');
-  if ($link.length && info.link_type) {
+  if ($link.length && info.link_type && typeof info.link_type === 'string') {
     if (['Album Link', 'Purchase Link'].includes(info.link_type)) {
       info.link = trimAbsolute($link.attr('href') || '');
       info.catalog = $link.text();
@@ -414,8 +414,9 @@ function parseTitleCell(
       if (classList.length > 1) {
         const klass = classList[classList.length - 1];
         const typeParts = klass.split('-');
-        info.type = typeParts[typeParts.length - 1];
-        info.category = typeCategoryMap(info.type);
+        const parsedType = typeParts[typeParts.length - 1];
+        info.type = parsedType;
+        info.category = typeCategoryMap(parsedType);
       }
     }
 
@@ -439,7 +440,7 @@ function parseTitleCell(
       const infoText = colorCodes[color];
       if (['albums', 'ratings', 'tracklists'].includes(type)) {
         info.category = infoText;
-        info.type = categoryTypeMap(info.category);
+        info.type = categoryTypeMap(infoText);
       } else if (type === 'media') {
         info.media_format = infoText;
       } else if (['products', 'labels'].includes(type)) {
