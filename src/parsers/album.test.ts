@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { parseAlbumPage } from '../parsers/album';
+import { parseAlbumPage } from './album';
 
 describe('Album Parser', () => {
   it('should parse album FF8 HTML correctly', () => {
@@ -44,6 +44,81 @@ describe('Album Parser', () => {
     expect(album.names).toBeDefined();
     expect(album.name).toBeDefined();
     expect(album.catalog).toBeDefined();
+  });
+
+  it('should parse album Game Over HTML correctly', () => {
+    const html = readFileSync(
+      join(__dirname, '../../tests/album_gameover.html'),
+      'utf-8'
+    );
+
+    const album = parseAlbumPage(html);
+
+    expect(album).not.toBeNull();
+    if (!album) return;
+
+    expect(album.names).toBeDefined();
+    expect(album.name).toBeDefined();
+  });
+
+  it('should parse album AT3 HTML correctly', () => {
+    const html = readFileSync(
+      join(__dirname, '../../tests/album_at3.html'),
+      'utf-8'
+    );
+
+    const album = parseAlbumPage(html);
+
+    expect(album).not.toBeNull();
+    if (!album) return;
+
+    expect(album.names).toBeDefined();
+    expect(album.name).toBeDefined();
+  });
+
+  it('should parse album Broken Night HTML correctly', () => {
+    const html = readFileSync(
+      join(__dirname, '../../tests/album_brokennight.html'),
+      'utf-8'
+    );
+
+    const album = parseAlbumPage(html);
+
+    expect(album).not.toBeNull();
+    if (!album) return;
+
+    expect(album.names).toBeDefined();
+    expect(album.name).toBeDefined();
+  });
+
+  it('should parse album Game of Thrones HTML correctly', () => {
+    const html = readFileSync(
+      join(__dirname, '../../tests/album_got.html'),
+      'utf-8'
+    );
+
+    const album = parseAlbumPage(html);
+
+    expect(album).not.toBeNull();
+    if (!album) return;
+
+    expect(album.names).toBeDefined();
+    expect(album.name).toBeDefined();
+  });
+
+  it('should parse album Bootleg HTML correctly', () => {
+    const html = readFileSync(
+      join(__dirname, '../../tests/album_bootleg.html'),
+      'utf-8'
+    );
+
+    const album = parseAlbumPage(html);
+
+    expect(album).not.toBeNull();
+    if (!album) return;
+
+    expect(album.names).toBeDefined();
+    expect(album.name).toBeDefined();
   });
 
   it('should return null for invalid HTML', () => {
