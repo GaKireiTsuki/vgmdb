@@ -1,30 +1,40 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import * as yaml from 'js-yaml';
+import * as path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 import { fetchAlbumPage, parseAlbumPage } from './parsers/album';
-import { fetchArtistPage, parseArtistPage } from './parsers/artist';
-import { fetchProductPage, parseProductPage } from './parsers/product';
-import { fetchEventPage, parseEventPage } from './parsers/event';
-import { fetchOrgPage, parseOrgPage } from './parsers/org';
 import { fetchAlbumlistPage, parseAlbumlistPage } from './parsers/albumlist';
+import { fetchArtistPage, parseArtistPage } from './parsers/artist';
 import { fetchArtistlistPage, parseArtistlistPage } from './parsers/artistlist';
-import { fetchProductlistPage, parseProductlistPage } from './parsers/productlist';
-import { fetchOrglistPage, parseOrglistPage } from './parsers/orglist';
+import { fetchEventPage, parseEventPage } from './parsers/event';
 import { fetchEventlistPage, parseEventlistPage } from './parsers/eventlist';
+import { fetchOrgPage, parseOrgPage } from './parsers/org';
+import { fetchOrglistPage, parseOrglistPage } from './parsers/orglist';
+import { fetchProductPage, parseProductPage } from './parsers/product';
+import {
+  fetchProductlistPage,
+  parseProductlistPage,
+} from './parsers/productlist';
+import { parseRecentPage } from './parsers/recent';
 import { fetchReleasePage, parseReleasePage } from './parsers/release';
 import { parseSearchPage } from './parsers/search';
-import { parseRecentPage } from './parsers/recent';
 import { fetchPage } from './utils/fetch';
 
 const app = express();
 const PORT = process.env.PORT || 9990;
-const DEFAULT_CORS_HEADERS = 'Origin, User-Agent, If-Modified-Since, Cache-Control';
+const DEFAULT_CORS_HEADERS =
+  'Origin, User-Agent, If-Modified-Since, Cache-Control';
+
+// Load OpenAPI specification
+const openapiPath = path.join(__dirname, '..', 'openapi.yaml');
+const swaggerDocument = YAML.load(openapiPath);
 
 // Helper function to send formatted response
 function sendFormattedResponse(
   res: Response,
   data: unknown,
-  format: string,
-  req: Request
+  format: string
 ): void {
   res.setHeader('Cache-Control', 'max-age=86400,public');
 
@@ -53,7 +63,8 @@ function handleError(error: unknown, res: Response, context: string): void {
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  const headers = req.headers['access-control-request-headers'] || DEFAULT_CORS_HEADERS;
+  const headers =
+    req.headers['access-control-request-headers'] || DEFAULT_CORS_HEADERS;
   res.setHeader('Access-Control-Allow-Headers', headers);
   next();
 });
@@ -61,6 +72,27 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Handle OPTIONS requests
 app.options('*', (req: Request, res: Response) => {
   res.status(200).send('Of course, this API is free for everyone!');
+});
+
+// Swagger UI documentation
+app.use('/api-docs', swaggerUi.serve);
+app.get(
+  '/api-docs',
+  swaggerUi.setup(swaggerDocument, {
+    customSiteTitle: 'VGMdb API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+      tryItOutEnabled: true,
+    },
+  })
+);
+
+// Redirect root to API docs
+app.get('/', (_req: Request, res: Response) => {
+  res.redirect('/api-docs');
 });
 
 // Hello endpoint
@@ -81,7 +113,7 @@ app.get('/album/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Album not found' });
     }
 
-    sendFormattedResponse(res, albumInfo, format, req);
+    sendFormattedResponse(res, albumInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching album');
   }
@@ -100,7 +132,7 @@ app.get('/artist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Artist not found' });
     }
 
-    sendFormattedResponse(res, artistInfo, format, req);
+    sendFormattedResponse(res, artistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching artist');
   }
@@ -119,7 +151,7 @@ app.get('/product/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    sendFormattedResponse(res, productInfo, format, req);
+    sendFormattedResponse(res, productInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching product');
   }
@@ -138,7 +170,7 @@ app.get('/event/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    sendFormattedResponse(res, eventInfo, format, req);
+    sendFormattedResponse(res, eventInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching event');
   }
@@ -157,7 +189,7 @@ app.get('/org/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Organization not found' });
     }
 
-    sendFormattedResponse(res, orgInfo, format, req);
+    sendFormattedResponse(res, orgInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching organization');
   }
@@ -176,7 +208,7 @@ app.get('/albumlist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Album list not found' });
     }
 
-    sendFormattedResponse(res, albumlistInfo, format, req);
+    sendFormattedResponse(res, albumlistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching album list');
   }
@@ -195,7 +227,7 @@ app.get('/artistlist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Artist list not found' });
     }
 
-    sendFormattedResponse(res, artistlistInfo, format, req);
+    sendFormattedResponse(res, artistlistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching artist list');
   }
@@ -214,7 +246,7 @@ app.get('/productlist/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Product list not found' });
     }
 
-    sendFormattedResponse(res, productlistInfo, format, req);
+    sendFormattedResponse(res, productlistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching product list');
   }
@@ -232,7 +264,7 @@ app.get('/orglist', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Organization list not found' });
     }
 
-    sendFormattedResponse(res, orglistInfo, format, req);
+    sendFormattedResponse(res, orglistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching organization list');
   }
@@ -250,7 +282,7 @@ app.get('/eventlist', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Event list not found' });
     }
 
-    sendFormattedResponse(res, eventlistInfo, format, req);
+    sendFormattedResponse(res, eventlistInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching event list');
   }
@@ -269,7 +301,7 @@ app.get('/release/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Release not found' });
     }
 
-    sendFormattedResponse(res, releaseInfo, format, req);
+    sendFormattedResponse(res, releaseInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching release');
   }
@@ -293,7 +325,7 @@ app.get('/search', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No results found' });
     }
 
-    sendFormattedResponse(res, searchInfo, format, req);
+    sendFormattedResponse(res, searchInfo, format);
   } catch (error) {
     handleError(error, res, 'performing search');
   }
@@ -313,7 +345,7 @@ app.get('/recent/:type?', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Recent updates not found' });
     }
 
-    sendFormattedResponse(res, recentInfo, format, req);
+    sendFormattedResponse(res, recentInfo, format);
   } catch (error) {
     handleError(error, res, 'fetching recent updates');
   }

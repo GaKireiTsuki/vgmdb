@@ -5,7 +5,7 @@ import * as fetchUtils from './fetch';
 
 export function parseString(element: AnyNode, cheerio: CheerioAPI): string {
   const $ = cheerio;
-  
+
   if (element.type === 'text') {
     let text = $(element).text();
     text = text.replace(/\s+/g, ' ');
@@ -25,7 +25,7 @@ export function parseString(element: AnyNode, cheerio: CheerioAPI): string {
 
     const bits: string[] = [];
     const children = $(element).contents().toArray();
-    
+
     for (const child of children) {
       bits.push(parseString(child, cheerio));
     }
@@ -321,7 +321,10 @@ export function parseDiscography(
         rolesStr = $rolesSpan.text().trim();
       }
 
-      const roles = rolesStr.split(',').map((r) => r.trim()).filter((r) => r);
+      const roles = rolesStr
+        .split(',')
+        .map((r) => r.trim())
+        .filter((r) => r);
 
       const normalizedDate = normalizeDottedDate(`${year}.${monthDay}`);
       const date = normalizedDate || undefined;
@@ -448,4 +451,60 @@ export function parseMeta(
   });
 
   return metaInfo;
+}
+
+export function parseFullName(japanName: string): {
+  name_real?: string;
+  name_trans?: string;
+} {
+  const nameData: {
+    name_real?: string;
+    name_trans?: string;
+  } = {};
+
+  if (japanName.length > 0) {
+    const leftParen = japanName.indexOf('(');
+    if (leftParen >= 0) {
+      const rightParen = japanName.lastIndexOf(')');
+      const origName = japanName.substring(0, leftParen).trim();
+      const ganaName = japanName.substring(leftParen + 1, rightParen).trim();
+      nameData.name_real = origName;
+      nameData.name_trans = ganaName;
+    } else {
+      nameData.name_real = japanName;
+    }
+  }
+
+  return nameData;
+}
+
+export function parseWebsites(
+  $div: cheerio.Cheerio<AnyNode>,
+  $: cheerio.CheerioAPI
+): Record<string, Array<{ link: string; name: string }>> {
+  const sites: Record<string, Array<{ link: string; name: string }>> = {};
+
+  $div.children('div').each((_i: number, categoryDiv: AnyNode) => {
+    const $categoryDiv = $(categoryDiv);
+    const category = $categoryDiv.find('b').text();
+    const links: Array<{ link: string; name: string }> = [];
+
+    $categoryDiv.children('a').each((_j: number, a: AnyNode) => {
+      const $a = $(a);
+      let link = $a.attr('href') || '';
+      const name = $a.text();
+
+      if (link.startsWith('/redirect')) {
+        link = fetchUtils.stripRedirect(link);
+      }
+
+      links.push({ link, name });
+    });
+
+    if (category && links.length > 0) {
+      sites[category] = links;
+    }
+  });
+
+  return sites;
 }
