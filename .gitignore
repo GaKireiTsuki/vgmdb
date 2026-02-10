@@ -1,4 +1,7 @@
 *.pyc
 gae_bundle
 vgmdb/local_settings.py
+node_modules
+dist
+*.log
 
